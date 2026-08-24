@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Emas Mentari - Soft Light Mode</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      /* Soft Light Non-Glare Palette */
+      --bg-color: #f1f5f9;        /* Soft Cool Grey/Slate - Teduh & tidak silau */
+      --card-bg: #ffffff;         /* Pure White Surface */
+      --card-border: #cbd5e1;     /* Border abu-abu lembut */
+      --input-bg: #f8fafc;
+      --accent: #d97706;          /* Amber Gold Warm */
+      --accent-hover: #b45309;
+      --accent-glow: rgba(217, 119, 6, 0.12);
+      --text: #1e293b;            /* Dark Slate Text - High Contrast */
+      --text-muted: #64748b;
+      --green: #059669;
+      --green-glow: rgba(5, 150, 105, 0.12);
+      --red: #e11d48;
+      --red-glow: rgba(225, 29, 72, 0.12);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text);
+      padding: 16px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1280px; margin: 0 auto; }
+    
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand h1 { 
+      color: var(--accent); 
+      font-size: 1.5rem; 
+      font-weight: 700;
+      letter-spacing: -0.5px; 
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand p { color: var(--text-muted); font-size: 0.85rem; }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .btn-action {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .btn-action:hover { background: var(--accent); color: #ffffff; border-color: var(--accent); }
+
+    /* Dashboard Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px; 
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px; 
+      padding: 16px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    .card-title {
+      font-size: 0.72rem; 
+      font-weight: 700;
+      text-transform: uppercase; 
+      letter-spacing: 0.8px;
+      color: var(--text-muted); 
+      margin-bottom: 8px;
+    }
+    .card-value { font-size: 1.35rem; font-weight: 700; color: var(--text); }
+    .card-sub { font-size: 0.78rem; margin-top: 6px; color: var(--text-muted); }
+    .card-sub input {
+      background: var(--input-bg); 
+      border: 1px solid var(--card-border);
+      color: var(--accent); 
+      font-weight: bold; 
+      padding: 3px 6px;
+      border-radius: 6px; 
+      width: 85px; 
+      text-align: right;
+      outline: none;
+    }
+
+    /* Chart Card */
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 220px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    .chart-card h3 { font-size: 0.88rem; font-weight: 600; margin-bottom: 10px; color: var(--text-muted); }
+    .chart-wrapper { flex: 1; position: relative; min-height: 160px; }
+
+    /* Form Section */
+    .form-section {
+      background: var(--card-bg);
+      border-radius: 12px; 
+      border: 1px solid var(--card-border);
+      margin-bottom: 20px; 
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+    .form-header {
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      background: #f8fafc;
+    }
+    .form-header h2 { font-size: 0.95rem; color: var(--text); font-weight: 600; }
+    .btn-toggle-form {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .form-body { padding: 18px; border-top: 1px solid var(--card-border); }
+    .form-body.collapsed { display: none; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+    .form-group input, .form-group select {
+      padding: 8px 10px; 
+      background: var(--input-bg);
+      border: 1px solid var(--card-border); 
+      color: var(--text);
+      border-radius: 8px; 
+      font-size: 0.85rem; 
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { 
+      border-color: var(--accent); 
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .calc-bar {
+      background: var(--accent-glow);
+      border: 1px dashed rgba(217, 119, 6, 0.4);
+      padding: 12px 16px; 
+      border-radius: 8px; 
+      margin-top: 16px;
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      flex-wrap: wrap; 
+      gap: 10px;
+    }
+    .calc-info { font-size: 0.85rem; }
+    .calc-info span { margin-right: 14px; }
+    .calc-info b { color: var(--accent); }
+
+    button.btn-submit {
+      background: var(--accent); 
+      color: #ffffff; 
+      font-weight: 700;
+      padding: 8px 20px; 
+      border: none; 
+      border-radius: 8px;
+      cursor: pointer; 
+      font-size: 0.85rem; 
+      transition: all 0.2s;
+    }
+    button.btn-submit:hover { background: var(--accent-hover); }
+
+    /* Table Section */
+    .table-section {
+      background: var(--card-bg); 
+      border-radius: 12px;
+      border: 1px solid var(--card-border); 
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+    .filter-bar {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--card-border);
+      background: #f8fafc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .filter-group { display: flex; gap: 8px; align-items: center; }
+    .filter-group select {
+      padding: 6px 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+    th {
+      background: #f1f5f9; 
+      padding: 12px 14px; 
+      color: var(--text-muted);
+      font-size: 0.72rem; 
+      text-transform: uppercase; 
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--card-border); 
+      white-space: nowrap;
+    }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); white-space: nowrap; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: #f8fafc; }
+
+    .badge {
+      display: inline-block; 
+      padding: 2px 8px; 
+      border-radius: 12px;
+      font-weight: 700; 
+      font-size: 0.7rem;
+    }
+    .badge-beli { background: var(--green-glow); color: var(--green); border: 1px solid rgba(5, 150, 105, 0.3); }
+    .badge-jual { background: var(--red-glow); color: var(--red); border: 1px solid rgba(225, 29, 72, 0.3); }
+
+    .btn-delete {
+      background: transparent;
+      border: none;
+      color: var(--red);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 2px 6px;
+    }
+    .btn-delete:hover { text-decoration: underline; }
+
+    @media (max-width: 900px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="brand">
+      <h1>✨ Portofolio Emas Mentari</h1>
+      <p>Dashboard Monitoring & Transaksi Investasi Emas</p>
+    </div>
+    <div class="status-bar">
+      <div class="live-indicator">
+        <div class="pulse-dot"></div>
+        <span id="status-text">Memuat Data Google Sheets...</span>
+      </div>
+      <button class="btn-action" onclick="loadSimulasiData()">⚡ Mode Simulasi Demo</button>
+      <button class="btn-action" onclick="exportToCSV()">📥 Ekspor CSV</button>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+    <!-- Metrics Grid -->
+    <div class="metrics-grid">
+      <div class="card">
+        <div class="card-title">Total Emas</div>
+        <div class="card-value" id="m-total-gram">0.0000 Gram</div>
+        <div class="card-sub">Saldo fisik saat ini</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Modal Investasi</div>
+        <div class="card-value" id="m-nilai-investasi">Rp 0</div>
+        <div class="card-sub">Akumulasi net beli/jual</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Nilai Pasar</div>
+        <div class="card-value" id="m-nilai-pasar">Rp 0</div>
+        <div class="card-sub">
+          Harga: <input type="number" id="harga-pasar-input" value="26590" oninput="renderDashboard()"> /0.01g
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Profit / Loss</div>
+        <div class="card-value" id="m-profit">Rp 0</div>
+        <div class="card-sub" id="m-profit-pct">0.00%</div>
+      </div>
+    </div>
+
+    <!-- Chart Card -->
+    <div class="chart-card">
+      <h3>Visual Portofolio</h3>
+      <div class="chart-wrapper">
+        <canvas id="portfolioChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Section -->
+  <div class="form-section">
+    <div class="form-header" onclick="toggleForm()">
+      <h2>➕ Tambah Transaksi Baru</h2>
+      <button type="button" class="btn-toggle-form" id="btn-toggle">Minimize ▲</button>
+    </div>
+    <div class="form-body" id="form-body">
+      <form id="trans-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Tanggal</label>
+            <input type="date" id="f-tanggal" required>
+          </div>
+          <div class="form-group">
+            <label>Jenis</label>
+            <select id="f-jenis">
+              <option value="Beli">Beli</option>
+              <option value="Jual">Jual</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Gram</label>
+            <input type="number" step="0.0001" id="f-gram" placeholder="1.0" required oninput="calculateForm()">
+          </div>
+          <div class="form-group">
+            <label>Harga / 0.01 Gram (Rp)</label>
+            <input type="number" id="f-harga" placeholder="26590" required oninput="calculateForm()">
+          </div>
+          <div class="form-group">
+            <label>Biaya Admin (Rp)</label>
+            <input type="number" id="f-admin" value="0" oninput="calculateForm()">
+          </div>
+          <div class="form-group">
+            <label>Biaya Layanan (Rp)</label>
+            <input type="number" id="f-layanan" value="0" oninput="calculateForm()">
+          </div>
+          <div class="form-group">
+            <label>Diskon (Rp)</label>
+            <input type="number" id="f-diskon" value="0" oninput="calculateForm()">
+          </div>
+        </div>
+
+        <div class="calc-bar">
+          <div class="calc-info">
+            <span>Nilai Emas: <b id="lbl-nilai-emas">Rp 0</b></span>
+            <span>Total Bayar: <b id="lbl-total-bayar">Rp 0</b></span>
+          </div>
+          <button type="submit" class="btn-submit" id="btn-submit">Simpan Transaksi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-section">
+    <div class="filter-bar">
+      <h3 style="font-size: 0.9rem; color: var(--text-muted);">Riwayat Transaksi</h3>
+      <div class="filter-group">
+        <label style="font-size: 0.78rem; color: var(--text-muted);">Filter Tipe:</label>
+        <select id="filter-jenis" onchange="renderDashboard()">
+          <option value="Semua">Semua</option>
+          <option value="Beli">Beli</option>
+          <option value="Jual">Jual</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Jenis</th>
+            <th>Gram</th>
+            <th>Harga/0.01g</th>
+            <th>Nilai Emas</th>
+            <th>Admin</th>
+            <th>Layanan</th>
+            <th>Diskon</th>
+            <th>Total Bayar</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="10" style="text-align: center; color: var(--text-muted);">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Ganti dengan URL Google Apps Script milik Anda
+  const API_URL = "https://script.google.com/macros/s/AKfycbyDZYjIdeZknLUE10Eoh7pfHmCW7XBDEdyHSb17K4QuKiRJKPbhX1L7OG1bt6h08zGi/exec";
+
+  let dbData = [];
+  let myChart = null;
+
+  document.getElementById('f-tanggal').valueAsDate = new Date();
+  const formatRp = (num) => "Rp " + Math.round(num || 0).toLocaleString('id-ID');
+
+  function toggleForm() {
+    const formBody = document.getElementById('form-body');
+    const btnToggle = document.getElementById('btn-toggle');
+    if (formBody.classList.contains('collapsed')) {
+      formBody.classList.remove('collapsed');
+      btnToggle.innerText = "Minimize ▲";
+    } else {
+      formBody.classList.add('collapsed');
+      btnToggle.innerText = "Expand ▼";
+    }
+  }
+
+  function formatDisplayDate(dateStr) {
+    if (!dateStr) return "";
+    const dateObj = new Date(dateStr);
+    if (!isNaN(dateObj.getTime())) {
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const y = dateObj.getFullYear();
+      return `${d}/${m}/${y}`;
+    }
+    return dateStr;
+  }
+
+  function normalizeRow(row) {
+    const jenisRaw = row.jenis || row.Jenis || "Beli";
+    return {
+      tanggal: row.tanggal || row.Tanggal || "",
+      jenis: String(jenisRaw).trim(),
+      gram: parseFloat(row.gram || row.Gram || 0),
+      harga: parseFloat(row.harga || row.Harga || row["Harga/0.01g"] || 0),
+      nilaiEmas: parseFloat(row.nilaiEmas || row["Nilai Emas"] || 0),
+      biayaAdmin: parseFloat(row.biayaAdmin || row["Biaya Admin"] || row.admin || 0),
+      biayaLayanan: parseFloat(row.biayaLayanan || row["Biaya Layanan"] || row.layanan || 0),
+      diskon: parseFloat(row.diskon || row.Diskon || 0),
+      totalBayar: parseFloat(row.totalBayar || row["Total Bayar"] || 0)
+    };
+  }
+
+  function calculateForm() {
+    const gram = parseFloat(document.getElementById('f-gram').value) || 0;
+    const harga = parseFloat(document.getElementById('f-harga').value) || 0;
+    const admin = parseFloat(document.getElementById('f-admin').value) || 0;
+    const layanan = parseFloat(document.getElementById('f-layanan').value) || 0;
+    const diskon = parseFloat(document.getElementById('f-diskon').value) || 0;
+
+    const nilaiEmas = (gram / 0.01) * harga;
+    const totalBayar = nilaiEmas + admin + layanan - diskon;
+
+    document.getElementById('lbl-nilai-emas').innerText = formatRp(nilaiEmas);
+    document.getElementById('lbl-total-bayar').innerText = formatRp(totalBayar);
+
+    return { nilaiEmas, totalBayar };
+  }
+
+  function loadSimulasiData() {
+    document.getElementById('status-text').innerText = "Mode Simulasi Demo";
+    dbData = [
+      { tanggal: "2026-01-10", jenis: "Beli", gram: 1.5, harga: 24500, nilaiEmas: 3675000, biayaAdmin: 2500, biayaLayanan: 1000, diskon: 5000, totalBayar: 3673500 },
+      { tanggal: "2026-03-15", jenis: "Beli", gram: 2.0, harga: 25200, nilaiEmas: 5040000, biayaAdmin: 2500, biayaLayanan: 1000, diskon: 0, totalBayar: 5043500 }
+    ];
+    renderDashboard();
+  }
+
+  async function loadData() {
+    try {
+      const res = await fetch(API_URL);
+      const json = await res.json();
+      
+      let rawData = [];
+      if (json.data && Array.isArray(json.data)) {
+        rawData = json.data;
+      } else if (Array.isArray(json)) {
+        rawData = json;
+      } else if (json.status === "success" && Array.isArray(json.result)) {
+        rawData = json.result;
+      }
+
+      if (rawData.length > 0) {
+        dbData = rawData.map(normalizeRow);
+        document.getElementById('status-text').innerText = "Google Sheets Live";
+      } else {
+        dbData = [];
+        document.getElementById('status-text').innerText = "Google Sheets Live (Kosong)";
+      }
+      renderDashboard();
+    } catch (err) {
+      console.warn("Gagal terhubung ke API Google Sheets:", err);
+      document.getElementById('status-text').innerText = "Koneksi Gagal";
+      dbData = [];
+      renderDashboard();
+    }
+  }
+
+  function deleteRow(index) {
+    if (confirm("Hapus transaksi ini dari tampilan lokal?")) {
+      dbData.splice(index, 1);
+      renderDashboard();
+    }
+  }
+
+  function exportToCSV() {
+    if (dbData.length === 0) return alert("Tidak ada data untuk diekspor!");
+    let csvContent = "data:text/csv;charset=utf-8,Tanggal,Jenis,Gram,Harga_001g,NilaiEmas,Admin,Layanan,Diskon,TotalBayar\n";
+    dbData.forEach(r => {
+      csvContent += `${r.tanggal},${r.jenis},${r.gram},${r.harga},${r.nilaiEmas},${r.biayaAdmin},${r.biayaLayanan},${r.diskon},${r.totalBayar}\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Portofolio_Emas_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function updateChart(investasi, pasar) {
+    const ctx = document.getElementById('portfolioChart').getContext('2d');
+    if (myChart) myChart.destroy();
+
+    myChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Modal Investasi', 'Nilai Pasar'],
+        datasets: [{
+          data: [investasi > 0 ? investasi : 0, pasar > 0 ? pasar : 0],
+          backgroundColor: ['#64748b', '#d97706'],
+          borderColor: '#ffffff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#64748b', font: { family: 'Plus Jakarta Sans', size: 11 } } }
+        }
+      }
+    });
+  }
+
+  function renderDashboard() {
+    let totalGram = 0;
+    let nilaiInvestasi = 0;
+    const hargaPasarNow = parseFloat(document.getElementById('harga-pasar-input').value) || 0;
+    const filterJenis = document.getElementById('filter-jenis').value;
+
+    let htmlTable = "";
+
+    dbData.forEach(row => {
+      const g = row.gram || 0;
+      const tb = row.totalBayar || 0;
+      if (row.jenis.toLowerCase() === "beli") {
+        totalGram += g;
+        nilaiInvestasi += tb;
+      } else if (row.jenis.toLowerCase() === "jual") {
+        totalGram -= g;
+        nilaiInvestasi -= tb;
+      }
+    });
+
+    [...dbData].reverse().forEach((row, idx) => {
+      if (filterJenis !== "Semua" && row.jenis.toLowerCase() !== filterJenis.toLowerCase()) return;
+
+      const realIndex = dbData.length - 1 - idx;
+      const g = row.gram || 0;
+
+      htmlTable += `
+        <tr>
+          <td>${formatDisplayDate(row.tanggal)}</td>
+          <td><span class="badge badge-${row.jenis.toLowerCase()}">${row.jenis}</span></td>
+          <td>${g}</td>
+          <td>${formatRp(row.harga)}</td>
+          <td>${formatRp(row.nilaiEmas)}</td>
+          <td>${formatRp(row.biayaAdmin)}</td>
+          <td>${formatRp(row.biayaLayanan)}</td>
+          <td>${formatRp(row.diskon)}</td>
+          <td><b>${formatRp(row.totalBayar)}</b></td>
+          <td><button class="btn-delete" onclick="deleteRow(${realIndex})">✕ Hapus</button></td>
+        </tr>
+      `;
+    });
+
+    document.getElementById('table-body').innerHTML = htmlTable || `<tr><td colspan="10" style="text-align: center; color: var(--text-muted);">Tidak ada transaksi.</td></tr>`;
+
+    const nilaiPasar = (totalGram / 0.01) * hargaPasarNow;
+    const profit = nilaiPasar - nilaiInvestasi;
+    const profitPct = nilaiInvestasi > 0 ? (profit / nilaiInvestasi) * 100 : 0;
+
+    document.getElementById('m-total-gram').innerText = totalGram.toFixed(4) + " Gram";
+    document.getElementById('m-nilai-investasi').innerText = formatRp(nilaiInvestasi);
+    document.getElementById('m-nilai-pasar').innerText = formatRp(nilaiPasar);
+    
+    const profitEl = document.getElementById('m-profit');
+    const profitPctEl = document.getElementById('m-profit-pct');
+    
+    profitEl.innerText = (profit >= 0 ? "+" : "") + formatRp(profit);
+    profitEl.style.color = profit >= 0 ? "var(--green)" : "var(--red)";
+    
+    profitPctEl.innerText = (profitPct >= 0 ? "+" : "") + profitPct.toFixed(2) + "%";
+    profitPctEl.style.color = profitPct >= 0 ? "var(--green)" : "var(--red)";
+
+    updateChart(nilaiInvestasi, nilaiPasar);
+  }
+
+  document.getElementById('trans-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit');
+    btn.innerText = "Menyimpan...";
+    btn.disabled = true;
+
+    const { nilaiEmas, totalBayar } = calculateForm();
+
+    const payload = {
+      tanggal: document.getElementById('f-tanggal').value,
+      jenis: document.getElementById('f-jenis').value,
+      gram: document.getElementById('f-gram').value,
+      harga: document.getElementById('f-harga').value,
+      nilaiEmas: nilaiEmas,
+      biayaAdmin: document.getElementById('f-admin').value,
+      biayaLayanan: document.getElementById('f-layanan').value,
+      diskon: document.getElementById('f-diskon').value,
+      totalBayar: totalBayar
+    };
+
+    if (document.getElementById('status-text').innerText.includes("Simulasi")) {
+      dbData.push(normalizeRow(payload));
+      renderDashboard();
+      document.getElementById('trans-form').reset();
+      document.getElementById('f-tanggal').valueAsDate = new Date();
+      btn.innerText = "Simpan Transaksi";
+      btn.disabled = false;
+      return;
+    }
+
+    try {
+      await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      
+      alert("Transaksi berhasil dikirim ke Google Sheets!");
+      document.getElementById('trans-form').reset();
+      document.getElementById('f-tanggal').valueAsDate = new Date();
+      calculateForm();
+
+      // Tunggu 1.2 detik agar Google Apps Script selesai menulis data sebelum direload
+      setTimeout(() => { loadData(); }, 1200);
+    } catch(err) {
+      alert("Gagal menyimpan data ke API Google Sheets.");
+    } finally {
+      btn.innerText = "Simpan Transaksi";
+      btn.disabled = false;
+    }
+  });
+
+  loadData();
+</script>
+</body>
+</html>
