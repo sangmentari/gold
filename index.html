@@ -473,7 +473,7 @@
     <div class="status-bar">
       <div class="live-badge">
         <div class="pulse-dot"></div>
-        <span id="status-text">Menghubungkan ke Google Sheets...</span>
+        <span id="status-text">Menghubungkan ke Server...</span>
       </div>
       <button class="btn-action" onclick="loadSimulasiData()">
         <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
@@ -785,7 +785,7 @@
       else if (Array.isArray(json)) rawData = json;
 
       dbData = rawData.length > 0 ? rawData.map(normalizeRow) : [];
-      document.getElementById('status-text').innerText = "Terhubung ke Google Sheets";
+      document.getElementById('status-text').innerText = "Terhubung ke Server";
       
       renderDashboard();
       loadMarketTrend();
